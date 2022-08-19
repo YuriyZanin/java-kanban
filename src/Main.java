@@ -1,3 +1,9 @@
+import ru.yandex.practicum.kanban.Status;
+import ru.yandex.practicum.kanban.model.Epic;
+import ru.yandex.practicum.kanban.model.SubTask;
+import ru.yandex.practicum.kanban.model.Task;
+import ru.yandex.practicum.kanban.service.TaskManager;
+
 public class Main {
 
     public static void main(String[] args) {

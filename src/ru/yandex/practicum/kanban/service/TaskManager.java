@@ -1,3 +1,9 @@
+package ru.yandex.practicum.kanban.service;
+
+import ru.yandex.practicum.kanban.model.Epic;
+import ru.yandex.practicum.kanban.model.SubTask;
+import ru.yandex.practicum.kanban.model.Task;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;

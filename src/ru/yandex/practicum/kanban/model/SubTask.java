@@ -1,3 +1,5 @@
+package ru.yandex.practicum.kanban.model;
+
 public class SubTask extends Task {
     private Epic parent;
 
