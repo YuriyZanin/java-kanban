@@ -17,14 +17,14 @@ public class Main {
 
         Epic firstEpicTask = new Epic("epicTask1", "test epic task 1");
         manager.createOrUpdateEpicTask(firstEpicTask);
-        SubTask subTask1 = new SubTask("sub1", "first sub of first epic task", firstEpicTask);
-        SubTask subTask2 = new SubTask("sub2", "second sub of first epic task", firstEpicTask);
+        SubTask subTask1 = new SubTask("sub1", "first sub of first epic task", firstEpicTask.getId());
+        SubTask subTask2 = new SubTask("sub2", "second sub of first epic task", firstEpicTask.getId());
         manager.createOrUpdateSubTask(subTask1);
         manager.createOrUpdateSubTask(subTask2);
 
         Epic secondEpicTask = new Epic("epicTask2", "test epic task 2");
-        SubTask subTask3 = new SubTask("sub", "sub of second epic", secondEpicTask);
         manager.createOrUpdateEpicTask(secondEpicTask);
+        SubTask subTask3 = new SubTask("sub", "sub of second epic", secondEpicTask.getId());
         manager.createOrUpdateSubTask(subTask3);
 
         printTaskInfo(manager);
@@ -59,9 +59,9 @@ public class Main {
         }
         for (Epic epic : manager.getEpicTasks()) {
             System.out.println(epic);
-            for (SubTask subTask : epic.getSubTasks()) {
-                System.out.println(subTask);
-            }
+        }
+        for (SubTask subTask : manager.getSubTasks()) {
+            System.out.println(subTask);
         }
     }
 }

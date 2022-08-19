@@ -1,19 +1,19 @@
 package ru.yandex.practicum.kanban.model;
 
 public class SubTask extends Task {
-    private Epic parent;
+    private int parentId;
 
-    public SubTask(String name, String description, Epic parent) {
+    public SubTask(String name, String description, int parentId) {
         super(name, description);
-        this.parent = parent;
+        this.parentId = parentId;
     }
 
-    public Epic getParent() {
-        return parent;
+    public int getParentId() {
+        return parentId;
     }
 
-    public void setParent(Epic parent) {
-        this.parent = parent;
+    public void setParentId(int parentId) {
+        this.parentId = parentId;
     }
 
     @Override
@@ -23,7 +23,7 @@ public class SubTask extends Task {
                 ", name='" + getName() + '\'' +
                 ", description='" + getDescription() + '\'' +
                 ", status=" + getStatus() +
-                ", parent=" + parent +
+                ", parentId=" + parentId +
                 '}';
     }
 }
