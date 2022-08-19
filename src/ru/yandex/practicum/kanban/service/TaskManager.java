@@ -87,7 +87,7 @@ public class TaskManager {
     }
 
     public void deleteEpicTask(int id) {
-        Epic taskToRemove = getEpicTaskById(id);
+        Epic taskToRemove = epicTasks.get(id);
         for (Integer subTaskId : taskToRemove.getSubTaskIds()) {
             subTasks.remove(subTaskId);
         }
@@ -95,7 +95,7 @@ public class TaskManager {
     }
 
     public void createSubTask(SubTask subTask) {
-        Epic parent = getEpicTaskById(subTask.getParentId());
+        Epic parent = epicTasks.get(subTask.getParentId());
         subTask.setId(currentId++);
         parent.addSubTask(subTask);
         subTasks.put(subTask.getId(), subTask);
@@ -103,14 +103,14 @@ public class TaskManager {
     }
 
     public void updateSubTask(SubTask subTask) {
-        Epic parent = getEpicTaskById(subTask.getParentId());
+        Epic parent = epicTasks.get(subTask.getParentId());
         subTasks.put(subTask.getId(), subTask);
         updateEpicStatus(parent);
     }
 
     public void deleteSubTask(int id) {
-        SubTask taskToRemove = getSubTaskById(id);
-        Epic epicTask = getEpicTaskById(taskToRemove.getParentId());
+        SubTask taskToRemove = subTasks.get(id);
+        Epic epicTask = epicTasks.get(taskToRemove.getParentId());
         epicTask.deleteSubTask(taskToRemove);
         updateEpicStatus(epicTask);
         subTasks.remove(id);
@@ -118,9 +118,9 @@ public class TaskManager {
 
     public List<SubTask> getEpicSubTasks(int id) {
         List<SubTask> epicSubTasks = new ArrayList<>();
-        Epic epicTask = getEpicTaskById(id);
+        Epic epicTask = epicTasks.get(id);
         for (Integer subTaskId : epicTask.getSubTaskIds()) {
-            epicSubTasks.add(getSubTaskById(subTaskId));
+            epicSubTasks.add(subTasks.get(subTaskId));
         }
         return epicSubTasks;
     }
@@ -132,7 +132,7 @@ public class TaskManager {
             boolean isExistNew = false;
             boolean isExistDone = false;
             for (Integer subTaskId : epicTask.getSubTaskIds()) {
-                SubTask subTask = getSubTaskById(subTaskId);
+                SubTask subTask = subTasks.get(subTaskId);
                 if (subTask.getStatus() == Status.NEW) {
                     isExistNew = true;
                 } else if (subTask.getStatus() == Status.DONE) {
