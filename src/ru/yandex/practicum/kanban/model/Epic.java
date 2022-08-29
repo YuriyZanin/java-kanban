@@ -1,7 +1,5 @@
 package ru.yandex.practicum.kanban.model;
 
-import ru.yandex.practicum.kanban.Status;
-
 import java.util.ArrayList;
 import java.util.List;
 

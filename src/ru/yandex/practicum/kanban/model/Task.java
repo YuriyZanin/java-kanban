@@ -1,7 +1,5 @@
 package ru.yandex.practicum.kanban.model;
 
-import ru.yandex.practicum.kanban.Status;
-
 public class Task {
     private String name;
     private String description;

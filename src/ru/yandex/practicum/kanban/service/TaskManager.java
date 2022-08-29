@@ -1,6 +1,6 @@
 package ru.yandex.practicum.kanban.service;
 
-import ru.yandex.practicum.kanban.Status;
+import ru.yandex.practicum.kanban.model.Status;
 import ru.yandex.practicum.kanban.model.Epic;
 import ru.yandex.practicum.kanban.model.SubTask;
 import ru.yandex.practicum.kanban.model.Task;

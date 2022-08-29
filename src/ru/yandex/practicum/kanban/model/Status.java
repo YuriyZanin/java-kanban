@@ -1,4 +1,4 @@
-package ru.yandex.practicum.kanban;
+package ru.yandex.practicum.kanban.model;
 
 public enum Status {
     NEW,
