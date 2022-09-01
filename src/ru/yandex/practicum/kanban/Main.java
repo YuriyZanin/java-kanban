@@ -4,14 +4,14 @@ import ru.yandex.practicum.kanban.model.Epic;
 import ru.yandex.practicum.kanban.model.Status;
 import ru.yandex.practicum.kanban.model.SubTask;
 import ru.yandex.practicum.kanban.model.Task;
-import ru.yandex.practicum.kanban.service.InMemoryTaskManager;
 import ru.yandex.practicum.kanban.service.TaskManager;
+import ru.yandex.practicum.kanban.utils.Managers;
 
 public class Main {
 
     public static void main(String[] args) {
         System.out.println("Поехали!");
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Task firstSimpleTask = new Task("simpleTask1", "test simple task 1");
         Task secondSimpleTask = new Task("simpleTask2", "test simple task 2");
