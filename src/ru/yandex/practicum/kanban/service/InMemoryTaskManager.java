@@ -4,6 +4,7 @@ import ru.yandex.practicum.kanban.model.Epic;
 import ru.yandex.practicum.kanban.model.Status;
 import ru.yandex.practicum.kanban.model.SubTask;
 import ru.yandex.practicum.kanban.model.Task;
+import ru.yandex.practicum.kanban.utils.Managers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,14 +14,14 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> simpleTasks;
     private final HashMap<Integer, Epic> epicTasks;
     private final HashMap<Integer, SubTask> subTasks;
-    private final List<Task> history;
+    private final HistoryManager historyManager;
     private int currentId;
 
     public InMemoryTaskManager() {
         this.simpleTasks = new HashMap<>();
         this.epicTasks = new HashMap<>();
         this.subTasks = new HashMap<>();
-        this.history = new ArrayList<>(10);
+        this.historyManager = Managers.getDefaultHistory();
         this.currentId = 1;
     }
 
@@ -62,21 +63,21 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Task getSimpleTaskById(int id) {
         Task simpleTask = simpleTasks.get(id);
-        addToHistory(simpleTask);
+        historyManager.add(simpleTask);
         return simpleTask;
     }
 
     @Override
     public Epic getEpicTaskById(int id) {
         Epic epic = epicTasks.get(id);
-        addToHistory(epic);
+        historyManager.add(epic);
         return epic;
     }
 
     @Override
     public SubTask getSubTaskById(int id) {
         SubTask subTask = subTasks.get(id);
-        addToHistory(subTask);
+        historyManager.add(subTask);
         return subTask;
     }
 
@@ -153,7 +154,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<Task> getHistory() {
-        return history;
+        return historyManager.getHistory();
     }
 
     private void updateEpicStatus(Epic epicTask) {
@@ -181,16 +182,5 @@ public class InMemoryTaskManager implements TaskManager {
                 epicTask.setStatus(Status.NEW);
             }
         }
-    }
-
-    private void addToHistory(Task task) {
-        if (task == null)
-            return;
-
-        if (history.size() == 10) {
-            history.remove(0);
-        }
-
-        history.add(task);
     }
 }
