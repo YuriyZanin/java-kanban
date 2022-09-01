@@ -1,7 +1,7 @@
 package ru.yandex.practicum.kanban.service;
 
-import ru.yandex.practicum.kanban.model.Status;
 import ru.yandex.practicum.kanban.model.Epic;
+import ru.yandex.practicum.kanban.model.Status;
 import ru.yandex.practicum.kanban.model.SubTask;
 import ru.yandex.practicum.kanban.model.Task;
 
@@ -9,16 +9,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class InMemoryTaskManager implements TaskManager{
-    private int currentId;
+public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> simpleTasks;
     private final HashMap<Integer, Epic> epicTasks;
     private final HashMap<Integer, SubTask> subTasks;
+    private final List<Task> history;
+    private int currentId;
 
     public InMemoryTaskManager() {
         this.simpleTasks = new HashMap<>();
         this.epicTasks = new HashMap<>();
         this.subTasks = new HashMap<>();
+        this.history = new ArrayList<>(10);
         this.currentId = 1;
     }
 
@@ -59,17 +61,23 @@ public class InMemoryTaskManager implements TaskManager{
 
     @Override
     public Task getSimpleTaskById(int id) {
-        return simpleTasks.get(id);
+        Task simpleTask = simpleTasks.get(id);
+        addToHistory(simpleTask);
+        return simpleTask;
     }
 
     @Override
     public Epic getEpicTaskById(int id) {
-        return epicTasks.get(id);
+        Epic epic = epicTasks.get(id);
+        addToHistory(epic);
+        return epic;
     }
 
     @Override
     public SubTask getSubTaskById(int id) {
-        return subTasks.get(id);
+        SubTask subTask = subTasks.get(id);
+        addToHistory(subTask);
+        return subTask;
     }
 
     @Override
@@ -143,7 +151,12 @@ public class InMemoryTaskManager implements TaskManager{
         return epicSubTasks;
     }
 
-    public void updateEpicStatus(Epic epicTask) {
+    @Override
+    public List<Task> getHistory() {
+        return history;
+    }
+
+    private void updateEpicStatus(Epic epicTask) {
         if (epicTask.getSubTaskIds().isEmpty()) {
             epicTask.setStatus(Status.NEW);
         } else {
@@ -168,5 +181,16 @@ public class InMemoryTaskManager implements TaskManager{
                 epicTask.setStatus(Status.NEW);
             }
         }
+    }
+
+    private void addToHistory(Task task) {
+        if (task == null)
+            return;
+
+        if (history.size() == 10) {
+            history.remove(0);
+        }
+
+        history.add(task);
     }
 }

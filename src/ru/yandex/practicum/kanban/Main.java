@@ -1,7 +1,7 @@
 package ru.yandex.practicum.kanban;
 
-import ru.yandex.practicum.kanban.model.Status;
 import ru.yandex.practicum.kanban.model.Epic;
+import ru.yandex.practicum.kanban.model.Status;
 import ru.yandex.practicum.kanban.model.SubTask;
 import ru.yandex.practicum.kanban.model.Task;
 import ru.yandex.practicum.kanban.service.InMemoryTaskManager;
@@ -17,6 +17,8 @@ public class Main {
         Task secondSimpleTask = new Task("simpleTask2", "test simple task 2");
         manager.createSimpleTask(firstSimpleTask);
         manager.createSimpleTask(secondSimpleTask);
+        manager.getSimpleTaskById(firstSimpleTask.getId());
+        manager.getSimpleTaskById(secondSimpleTask.getId());
 
         Epic firstEpicTask = new Epic("epicTask1", "test epic task 1");
         manager.createEpicTask(firstEpicTask);
@@ -24,11 +26,16 @@ public class Main {
         SubTask subTask2 = new SubTask("sub2", "second sub of first epic task", firstEpicTask.getId());
         manager.createSubTask(subTask1);
         manager.createSubTask(subTask2);
+        manager.getEpicTaskById(firstEpicTask.getId());
+        manager.getSubTaskById(subTask1.getId());
+        manager.getSubTaskById(subTask2.getId());
 
         Epic secondEpicTask = new Epic("epicTask2", "test epic task 2");
         manager.createEpicTask(secondEpicTask);
         SubTask subTask3 = new SubTask("sub", "sub of second epic", secondEpicTask.getId());
         manager.createSubTask(subTask3);
+        manager.getEpicTaskById(secondEpicTask.getId());
+        manager.getSubTaskById(subTask3.getId());
 
         printTaskInfo(manager);
 
@@ -54,6 +61,7 @@ public class Main {
 
         System.out.println("После удаления:");
         printTaskInfo(manager);
+        printHistory(manager);
     }
 
     public static void printTaskInfo(TaskManager manager) {
@@ -65,6 +73,13 @@ public class Main {
         }
         for (SubTask subTask : manager.getSubTasks()) {
             System.out.println(subTask);
+        }
+    }
+
+    public static void printHistory(TaskManager manager) {
+        System.out.println("История просмотра задач:");
+        for (Task task : manager.getHistory()) {
+            System.out.println(task);
         }
     }
 }
