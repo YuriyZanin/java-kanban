@@ -54,7 +54,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void clearSubTasks() {
         for (Epic epicTask : getEpicTasks()) {
-            epicTask.getSubTaskIds().clear();
+            epicTask.clearSubTasks();
             updateEpicStatus(epicTask);
         }
         subTasks.clear();
@@ -111,9 +111,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteEpicTask(int id) {
         Epic taskToRemove = epicTasks.get(id);
-        for (Integer subTaskId : taskToRemove.getSubTaskIds()) {
-            subTasks.remove(subTaskId);
-        }
+        taskToRemove.clearSubTasks();
         epicTasks.remove(id);
     }
 
@@ -145,9 +143,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public List<SubTask> getEpicSubTasks(int epicId) {
         List<SubTask> epicSubTasks = new ArrayList<>();
-        Epic epicTask = epicTasks.get(epicId);
-        for (Integer subTaskId : epicTask.getSubTaskIds()) {
-            epicSubTasks.add(subTasks.get(subTaskId));
+        for (SubTask subTask : subTasks.values()) {
+            if (subTask.getParentId() == epicId)
+                epicSubTasks.add(subTask);
         }
         return epicSubTasks;
     }
@@ -158,13 +156,13 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void updateEpicStatus(Epic epicTask) {
-        if (epicTask.getSubTaskIds().isEmpty()) {
+        List<SubTask> epicSubTasks = getEpicSubTasks(epicTask.getId());
+        if (epicSubTasks.isEmpty()) {
             epicTask.setStatus(Status.NEW);
         } else {
             boolean isExistNew = false;
             boolean isExistDone = false;
-            for (Integer subTaskId : epicTask.getSubTaskIds()) {
-                SubTask subTask = subTasks.get(subTaskId);
+            for (SubTask subTask : epicSubTasks) {
                 if (subTask.getStatus() == Status.NEW) {
                     isExistNew = true;
                 } else if (subTask.getStatus() == Status.DONE) {

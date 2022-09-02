@@ -1,7 +1,7 @@
 package ru.yandex.practicum.kanban.model;
 
 public class SubTask extends Task {
-    private int parentId;
+    private final int parentId;
 
     public SubTask(String name, String description, int parentId) {
         super(name, description);
@@ -10,10 +10,6 @@ public class SubTask extends Task {
 
     public int getParentId() {
         return parentId;
-    }
-
-    public void setParentId(int parentId) {
-        this.parentId = parentId;
     }
 
     @Override
