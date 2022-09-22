@@ -1,6 +1,7 @@
 package ru.yandex.practicum.kanban.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Epic extends Task {
@@ -21,6 +22,10 @@ public class Epic extends Task {
 
     public void clearSubTasks() {
         subTaskIds.clear();
+    }
+
+    public List<Integer> getSubTaskIds() {
+        return Collections.unmodifiableList(subTaskIds);
     }
 
     @Override

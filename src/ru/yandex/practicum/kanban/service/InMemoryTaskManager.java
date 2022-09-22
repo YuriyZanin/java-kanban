@@ -147,9 +147,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public List<SubTask> getEpicSubTasks(int epicId) {
         List<SubTask> epicSubTasks = new ArrayList<>();
-        for (SubTask subTask : subTasks.values()) {
-            if (subTask.getParentId() == epicId)
-                epicSubTasks.add(subTask);
+        Epic epicTask = epicTasks.get(epicId);
+        for (Integer subTaskId : epicTask.getSubTaskIds()) {
+            epicSubTasks.add(subTasks.get(subTaskId));
         }
         return epicSubTasks;
     }
