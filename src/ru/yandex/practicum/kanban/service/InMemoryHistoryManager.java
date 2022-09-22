@@ -26,7 +26,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         history.put(task.getId(), linkLast(task));
     }
 
-    public void removeNode(Node node) {
+    private void removeNode(Node node) {
         final Node prev = node.prev;
         final Node next = node.next;
 
