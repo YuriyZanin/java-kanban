@@ -83,7 +83,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void createSimpleTask(Task task) {
-        task.setId(currentId++);
+        if (task.getId() == null)
+            task.setId(currentId++);
         simpleTasks.put(task.getId(), task);
     }
 
@@ -100,7 +101,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void createEpicTask(Epic epic) {
-        epic.setId(currentId++);
+        if (epic.getId() == null)
+            epic.setId(currentId++);
         epicTasks.put(epic.getId(), epic);
     }
 
@@ -122,7 +124,8 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void createSubTask(SubTask subTask) {
         Epic parent = epicTasks.get(subTask.getParentId());
-        subTask.setId(currentId++);
+        if (subTask.getId() == null)
+            subTask.setId(currentId++);
         parent.addSubTask(subTask);
         subTasks.put(subTask.getId(), subTask);
         updateEpicStatus(parent);
@@ -184,5 +187,13 @@ public class InMemoryTaskManager implements TaskManager {
                 epicTask.setStatus(Status.NEW);
             }
         }
+    }
+
+    public void setCurrentId(int currentId) {
+        this.currentId = currentId;
+    }
+
+    public HistoryManager getHistoryManager() {
+        return historyManager;
     }
 }

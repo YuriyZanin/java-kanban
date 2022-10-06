@@ -12,6 +12,13 @@ public class Task {
         this.status = Status.NEW;
     }
 
+    public Task(Integer id, String name, Status status, String description) {
+        this.name = name;
+        this.description = description;
+        this.id = id;
+        this.status = status;
+    }
+
     public String getName() {
         return name;
     }
@@ -46,11 +53,6 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
-                '}';
+        return String.format("%s,%s,%s,%s,%s,%s", getId(), TaskType.TASK, getName(), getStatus(), getDescription(), "");
     }
 }

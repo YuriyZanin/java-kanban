@@ -8,18 +8,17 @@ public class SubTask extends Task {
         this.parentId = parentId;
     }
 
+    public SubTask(Integer id, String name, Status status, String description, int parentId) {
+        super(id, name, status, description);
+        this.parentId = parentId;
+    }
+
     public int getParentId() {
         return parentId;
     }
 
     @Override
     public String toString() {
-        return "SubTask{" +
-                "id=" + getId() +
-                ", name='" + getName() + '\'' +
-                ", description='" + getDescription() + '\'' +
-                ", status=" + getStatus() +
-                ", parentId=" + parentId +
-                '}';
+        return String.format("%s,%s,%s,%s,%s,%s", getId(), TaskType.SUBTASK, getName(), getStatus(), getDescription(), getParentId());
     }
 }
