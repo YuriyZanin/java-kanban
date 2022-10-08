@@ -57,10 +57,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             String[] lines = fileContent.split("\n");
 
             int maxId = 0;
+            boolean isHistoryStringExists = false;
             Map<Integer, Task> loadedTasks = new HashMap<>();
-            for (String line : Arrays.copyOfRange(lines, 1, lines.length - 1)) {
-                if (line.isEmpty())
+            for (String line : Arrays.copyOfRange(lines, 1, lines.length)) {
+                if (line.isEmpty()) {
+                    isHistoryStringExists = true;
                     break;
+                }
 
                 Task task = loadedManager.fromString(line);
                 if (task.getId() > maxId) {
@@ -70,12 +73,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             }
             loadedManager.setCurrentId(maxId + 1);
 
-            List<Integer> historyIds = historyFromString(lines[lines.length - 1]);
-            for (Integer historyId : historyIds) {
-                loadedManager.getHistoryManager().add(loadedTasks.get(historyId));
+            if (isHistoryStringExists) {
+                List<Integer> historyIds = historyFromString(lines[lines.length - 1]);
+                for (Integer historyId : historyIds) {
+                    loadedManager.getHistoryManager().add(loadedTasks.get(historyId));
+                }
             }
         } catch (IOException e) {
-            throw new ManagerLoadException("Ошибка чтения файла " + file.getAbsolutePath());
+            throw new RuntimeException("Ошибка", e);
         } catch (IllegalArgumentException e) {
             throw new ManagerLoadException(String.format("Файл %s не содержит данных для загрузки", file.getAbsolutePath()));
         }
@@ -83,7 +88,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return loadedManager;
     }
 
-    public static String historyToString(HistoryManager manager) {
+    private static String historyToString(HistoryManager manager) {
         List<String> historyIds = new ArrayList<>();
         for (Task task : manager.getHistory()) {
             historyIds.add(task.getId().toString());
@@ -91,9 +96,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return String.join(",", historyIds);
     }
 
-    public static List<Integer> historyFromString(String value) {
-        if (value.isEmpty())
+    private static List<Integer> historyFromString(String value) {
+        if (value.isEmpty()) {
             return Collections.emptyList();
+        }
 
         String[] data = value.split(",");
         List<Integer> ids = new ArrayList<>();
