@@ -80,9 +80,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка", e);
+            throw new ManagerLoadException("Ошибка при загрузке файла", e);
         } catch (IllegalArgumentException e) {
-            throw new ManagerLoadException(String.format("Файл %s не содержит данных для загрузки", file.getAbsolutePath()));
+            throw new ManagerLoadException(String.format("Файл %s не содержит данных для загрузки", file.getAbsolutePath()), e);
         }
 
         return loadedManager;
