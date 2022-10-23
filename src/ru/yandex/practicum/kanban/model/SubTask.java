@@ -1,17 +1,21 @@
 package ru.yandex.practicum.kanban.model;
 
+import ru.yandex.practicum.kanban.utils.Managers;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class SubTask extends Task {
     private final int parentId;
 
-    public SubTask(String name, String description, int parentId) {
-        super(name, description);
+    public SubTask(String name, String description, LocalDateTime startTime, Duration duration, int parentId) {
+        super(name, description, startTime, duration);
         this.parentId = parentId;
     }
 
-    public SubTask(Integer id, String name, Status status, String description, int parentId) {
-        super(id, name, status, description);
+    public SubTask(Integer id, String name, Status status, String description, LocalDateTime startTime, Duration duration, int parentId) {
+        super(id, name, status, description, startTime, duration);
         this.parentId = parentId;
     }
 
@@ -21,7 +25,15 @@ public class SubTask extends Task {
 
     @Override
     public String toString() {
-        return String.format("%s,%s,%s,%s,%s,%s", getId(), TaskType.SUBTASK, getName(), getStatus(), getDescription(), getParentId());
+        return String.format("%d,%s,%s,%s,%s,%s,%s,%s",
+                getId(),
+                TaskType.SUBTASK,
+                getName(),
+                getStatus(),
+                getDescription(),
+                getStartTime() == null ? " " : Managers.dateTimeFormatter.format(getStartTime()),
+                getDuration() == null ? " " : getDuration().toMinutes(),
+                getParentId());
     }
 
     @Override

@@ -1,5 +1,9 @@
 package ru.yandex.practicum.kanban.model;
 
+import ru.yandex.practicum.kanban.utils.Managers;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -8,13 +12,15 @@ import java.util.Objects;
 public class Epic extends Task {
     private final List<Integer> subTaskIds;
 
-    public Epic(String name, String description) {
-        super(name, description);
+    private LocalDateTime endTime;
+
+    public Epic(String name, String description, LocalDateTime startTime, Duration duration) {
+        super(name, description, startTime, duration);
         this.subTaskIds = new ArrayList<>();
     }
 
-    public Epic(Integer id, String name, Status status, String description) {
-        super(id, name, status, description);
+    public Epic(Integer id, String name, Status status, String description, LocalDateTime startTime, Duration duration) {
+        super(id, name, status, description, startTime, duration);
         this.subTaskIds = new ArrayList<>();
     }
 
@@ -35,8 +41,25 @@ public class Epic extends Task {
     }
 
     @Override
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    @Override
     public String toString() {
-        return String.format("%s,%s,%s,%s,%s,%s", getId(), TaskType.EPIC, getName(), getStatus(), getDescription(), "");
+        return String.format("%d,%s,%s,%s,%s,%s,%s,%s",
+                getId(),
+                TaskType.EPIC,
+                getName(),
+                getStatus(),
+                getDescription(),
+                getStartTime() == null ? " " : Managers.dateTimeFormatter.format(getStartTime()),
+                getDuration() == null ? " " : getDuration().toMinutes(),
+                "");
     }
 
     @Override
@@ -45,11 +68,14 @@ public class Epic extends Task {
         if (!(o instanceof Epic)) return false;
         if (!super.equals(o)) return false;
         Epic epic = (Epic) o;
-        return subTaskIds.equals(epic.subTaskIds);
+        String endTime = getEndTime() == null ? "" : Managers.dateTimeFormatter.format(getEndTime());
+        String taskEndTime = epic.getEndTime() == null ? "" : Managers.dateTimeFormatter.format(epic.getEndTime());
+        return Objects.equals(subTaskIds, epic.subTaskIds)
+                && endTime.equals(taskEndTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), subTaskIds);
+        return Objects.hash(super.hashCode(), subTaskIds, endTime);
     }
 }

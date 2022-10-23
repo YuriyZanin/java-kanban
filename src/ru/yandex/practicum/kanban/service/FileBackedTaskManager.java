@@ -3,6 +3,7 @@ package ru.yandex.practicum.kanban.service;
 import ru.yandex.practicum.kanban.exeption.ManagerLoadException;
 import ru.yandex.practicum.kanban.exeption.ManagerSaveException;
 import ru.yandex.practicum.kanban.model.*;
+import ru.yandex.practicum.kanban.utils.Managers;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -11,6 +12,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
@@ -93,19 +96,21 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String name = data[2];
         Status status = Status.valueOf(data[3]);
         String description = data[4];
+        LocalDateTime startTime = data[5].isBlank() ? null : LocalDateTime.parse(data[5], Managers.dateTimeFormatter);
+        Duration duration = data[6].isBlank() ? null : Duration.ofMinutes(Long.parseLong(data[6]));
 
         switch (type) {
             case TASK:
-                Task task = new Task(id, name, status, description);
+                Task task = new Task(id, name, status, description, startTime, duration);
                 super.createSimpleTask(task);
                 task.setId(id);
                 return task;
             case EPIC:
-                Epic epic = new Epic(id, name, status, description);
+                Epic epic = new Epic(id, name, status, description, startTime, duration);
                 super.createEpicTask(epic);
                 return epic;
             case SUBTASK:
-                SubTask subTask = new SubTask(id, name, status, description, Integer.parseInt(data[5]));
+                SubTask subTask = new SubTask(id, name, status, description, startTime, duration, Integer.parseInt(data[7]));
                 super.createSubTask(subTask);
                 return subTask;
             default:
@@ -115,7 +120,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private void save() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(path.toFile()))) {
-            writer.write("id,type,name,status,description,epic\n");
+            writer.write("id,type,name,status,description,startTime,duration,epic\n");
             writeTasks(writer, getSimpleTasks());
             writeTasks(writer, getEpicTasks());
             writeTasks(writer, getSubTasks());

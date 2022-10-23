@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,7 +27,7 @@ class EpicTest {
 
     @Test
     void addSubTask() {
-        EPIC_TASK_1.addSubTask(new SubTask(5, "Sub task 5", Status.NEW, "sub task from add method", EPIC_TASK_1_ID));
+        EPIC_TASK_1.addSubTask(new SubTask(5, "Sub task 5", Status.NEW, "sub task from add method", null, Duration.ZERO, EPIC_TASK_1_ID));
         assertEquals(4, EPIC_TASK_1.getSubTaskIds().size());
     }
 

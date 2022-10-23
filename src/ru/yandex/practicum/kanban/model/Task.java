@@ -1,5 +1,9 @@
 package ru.yandex.practicum.kanban.model;
 
+import ru.yandex.practicum.kanban.utils.Managers;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Task {
@@ -7,18 +11,24 @@ public class Task {
     private String description;
     private Integer id;
     private Status status;
+    private Duration duration;
+    private LocalDateTime startTime;
 
-    public Task(String name, String description) {
+    public Task(String name, String description, LocalDateTime startTime, Duration duration) {
         this.name = name;
         this.description = description;
         this.status = Status.NEW;
+        this.startTime = startTime;
+        this.duration = duration;
     }
 
-    public Task(Integer id, String name, Status status, String description) {
+    public Task(Integer id, String name, Status status, String description, LocalDateTime startTime, Duration duration) {
         this.name = name;
         this.description = description;
         this.id = id;
         this.status = status;
+        this.startTime = startTime;
+        this.duration = duration;
     }
 
     public String getName() {
@@ -53,9 +63,37 @@ public class Task {
         this.status = status;
     }
 
+    public LocalDateTime getEndTime() {
+        return startTime.plus(duration);
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
     @Override
     public String toString() {
-        return String.format("%s,%s,%s,%s,%s,%s", getId(), TaskType.TASK, getName(), getStatus(), getDescription(), "");
+        return String.format("%d,%s,%s,%s,%s,%s,%s,%s",
+                getId(),
+                TaskType.TASK,
+                getName(),
+                getStatus(),
+                getDescription(),
+                getStartTime() == null ? " " : Managers.dateTimeFormatter.format(getStartTime()),
+                getDuration() == null ? " " : getDuration().toMinutes(),
+                "");
     }
 
     @Override
@@ -63,11 +101,15 @@ public class Task {
         if (this == o) return true;
         if (!(o instanceof Task)) return false;
         Task task = (Task) o;
-        return name.equals(task.name) && Objects.equals(description, task.description) && id.equals(task.id) && status == task.status;
+        String startTime = getStartTime() == null ? "" : Managers.dateTimeFormatter.format(getStartTime());
+        String taskStartTime = task.getStartTime() == null ? "" : Managers.dateTimeFormatter.format(task.getStartTime());
+        return name.equals(task.name) && Objects.equals(description, task.description) && id.equals(task.id)
+                && status == task.status && Objects.equals(duration, task.duration)
+                && startTime.equals(taskStartTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, id, status);
+        return Objects.hash(name, description, id, status, duration, startTime);
     }
 }

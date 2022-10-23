@@ -5,6 +5,8 @@ import ru.yandex.practicum.kanban.model.Epic;
 import ru.yandex.practicum.kanban.model.SubTask;
 import ru.yandex.practicum.kanban.model.Task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -83,7 +85,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void createSimpleTask() {
-        Task newTask = new Task("Task", "task from create method");
+        Task newTask = new Task("Task", "task from create method", LocalDateTime.now(), Duration.ofMinutes(10));
         manager.createSimpleTask(newTask);
         assertNotNull(manager.getSimpleTaskById(newTask.getId()));
         assertEquals(manager.getSimpleTaskById(newTask.getId()), newTask);
@@ -93,7 +95,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void updateSimpleTask() {
         Task taskBeforeUpdate = manager.getSimpleTaskById(SIMPLE_TASK_1_ID);
-        manager.updateSimpleTask(new Task(taskBeforeUpdate.getId(), "updated Name", taskBeforeUpdate.getStatus(), "updated desc"));
+        manager.updateSimpleTask(new Task(taskBeforeUpdate.getId(), "updated Name", taskBeforeUpdate.getStatus(), "updated desc", taskBeforeUpdate.getStartTime(), taskBeforeUpdate.getDuration()));
         Task updatedTask = manager.getSimpleTaskById(taskBeforeUpdate.getId());
         assertNotEquals(taskBeforeUpdate, updatedTask);
         assertEquals(SIMPLE_TASKS.size(), manager.getSimpleTasks().size());
@@ -111,7 +113,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void createEpicTask() {
-        Epic newEpic = new Epic("Epic", "epic from create method");
+        Epic newEpic = new Epic("Epic", "epic from create method", LocalDateTime.now(), Duration.ofMinutes(10));
         manager.createEpicTask(newEpic);
         assertNotNull(manager.getEpicTaskById(newEpic.getId()));
         assertEquals(newEpic, manager.getEpicTaskById(newEpic.getId()));
@@ -121,7 +123,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void updateEpicTask() {
         Epic epicBeforeUpdate = manager.getEpicTaskById(EPIC_TASK_2_ID);
-        manager.updateEpicTask(new Epic(epicBeforeUpdate.getId(), "Epic", NEW, "updated epic task"));
+        manager.updateEpicTask(new Epic(epicBeforeUpdate.getId(), "Epic", NEW, "updated epic task", epicBeforeUpdate.getStartTime(), epicBeforeUpdate.getDuration()));
         Epic updatedEpic = manager.getEpicTaskById(epicBeforeUpdate.getId());
         assertNotEquals(epicBeforeUpdate, updatedEpic);
         assertEquals(EPIC_TASKS.size(), manager.getEpicTasks().size());
@@ -139,7 +141,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void createSubTask() {
-        SubTask newSubTask = new SubTask("Sub task", "sub task from create method", EPIC_TASK_1_ID);
+        SubTask newSubTask = new SubTask("Sub task", "sub task from create method", null, Duration.ofMinutes(10), EPIC_TASK_1_ID);
         manager.createSubTask(newSubTask);
         assertNotNull(manager.getSubTaskById(newSubTask.getId()));
         assertEquals(newSubTask, manager.getSubTaskById(newSubTask.getId()));
@@ -149,7 +151,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void updateSubTask() {
         SubTask subTaskBeforeUpdate = manager.getSubTaskById(SUB_TASK_1_ID);
-        manager.updateSubTask(new SubTask(subTaskBeforeUpdate.getId(), "sub", NEW, "updated sub task", EPIC_TASK_1_ID));
+        manager.updateSubTask(new SubTask(subTaskBeforeUpdate.getId(), "sub", NEW, "updated sub task", subTaskBeforeUpdate.getStartTime(), subTaskBeforeUpdate.getDuration(), EPIC_TASK_1_ID));
         SubTask updatedTask = manager.getSubTaskById(subTaskBeforeUpdate.getId());
         assertNotEquals(subTaskBeforeUpdate, updatedTask);
         assertEquals(SUB_TASKS.size(), manager.getSubTasks().size());
@@ -175,11 +177,11 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void checkEpicStatusCalculating() {
-        Epic newEpic = new Epic("new Epic", "epic for testing");
+        Epic newEpic = new Epic("new Epic", "epic for testing", null, Duration.ofMinutes(10));
         manager.createEpicTask(newEpic);
-        manager.createSubTask(new SubTask("new Sub 1", "sub 1", newEpic.getId()));
-        manager.createSubTask(new SubTask("new Sub 2", "sub 2", newEpic.getId()));
-        manager.createSubTask(new SubTask("new Sub 3", "sub 3", newEpic.getId()));
+        manager.createSubTask(new SubTask("new Sub 1", "sub 1", null, Duration.ofMinutes(10), newEpic.getId()));
+        manager.createSubTask(new SubTask("new Sub 2", "sub 2", null, Duration.ofMinutes(10), newEpic.getId()));
+        manager.createSubTask(new SubTask("new Sub 3", "sub 3", null, Duration.ofMinutes(10), newEpic.getId()));
 
         List<SubTask> subTasks = manager.getEpicSubTasks(newEpic.getId());
         assertTrue(subTasks.stream().allMatch(subTask -> subTask.getStatus() == NEW));

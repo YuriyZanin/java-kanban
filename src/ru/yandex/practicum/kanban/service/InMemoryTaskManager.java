@@ -6,6 +6,8 @@ import ru.yandex.practicum.kanban.model.SubTask;
 import ru.yandex.practicum.kanban.model.Task;
 import ru.yandex.practicum.kanban.utils.Managers;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -56,7 +58,7 @@ public class InMemoryTaskManager implements TaskManager {
         subTasks.clear();
         for (Epic epicTask : getEpicTasks()) {
             epicTask.clearSubTasks();
-            updateEpicStatus(epicTask);
+            updateEpic(epicTask);
         }
     }
 
@@ -128,14 +130,14 @@ public class InMemoryTaskManager implements TaskManager {
             subTask.setId(currentId++);
         parent.addSubTask(subTask);
         subTasks.put(subTask.getId(), subTask);
-        updateEpicStatus(parent);
+        updateEpic(parent);
     }
 
     @Override
     public void updateSubTask(SubTask subTask) {
         Epic parent = epicTasks.get(subTask.getParentId());
         subTasks.put(subTask.getId(), subTask);
-        updateEpicStatus(parent);
+        updateEpic(parent);
     }
 
     @Override
@@ -144,7 +146,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (taskToRemove != null) {
             Epic epicTask = epicTasks.get(taskToRemove.getParentId());
             epicTask.deleteSubTask(taskToRemove);
-            updateEpicStatus(epicTask);
+            updateEpic(epicTask);
             historyManager.remove(id);
         }
     }
@@ -172,24 +174,42 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    private void updateEpicStatus(Epic epicTask) {
+    private void updateEpic(Epic epicTask) {
         List<SubTask> epicSubTasks = getEpicSubTasks(epicTask.getId());
         if (epicSubTasks.isEmpty()) {
             epicTask.setStatus(Status.NEW);
+            epicTask.setDuration(Duration.ZERO);
+            epicTask.setStartTime(null);
+            epicTask.setEndTime(null);
         } else {
             boolean isExistNew = false;
             boolean isExistDone = false;
+            boolean isExistInProgress = false;
+            Duration duration = Duration.ZERO;
+            LocalDateTime startTime = epicSubTasks.get(0).getStartTime();
             for (SubTask subTask : epicSubTasks) {
+                if (subTask.getDuration() != null) {
+                    duration = duration.plus(subTask.getDuration());
+                }
+                if (subTask.getStartTime() != null && subTask.getStartTime().isBefore(startTime)) {
+                    startTime = subTask.getStartTime();
+                }
+
                 if (subTask.getStatus() == Status.NEW) {
                     isExistNew = true;
                 } else if (subTask.getStatus() == Status.DONE) {
                     isExistDone = true;
                 } else {
-                    epicTask.setStatus(Status.IN_PROGRESS);
-                    return;
+                    isExistInProgress = true;
                 }
             }
-            if (isExistNew && isExistDone) {
+            epicTask.setDuration(duration);
+            if (startTime != null) {
+                epicTask.setStartTime(startTime);
+                epicTask.setEndTime(startTime.plus(duration));
+            }
+
+            if (isExistInProgress || (isExistNew && isExistDone)) {
                 epicTask.setStatus(Status.IN_PROGRESS);
             } else if (!isExistNew) {
                 epicTask.setStatus(Status.DONE);
