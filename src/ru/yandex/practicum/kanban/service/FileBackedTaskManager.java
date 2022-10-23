@@ -26,30 +26,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         this.path = Paths.get(directory, fileName);
     }
 
-    public static void main(String[] args) {
-        final String HOME = System.getProperty("user.home");
-        TaskManager fileManager = new FileBackedTaskManager(HOME, "task_data.csv");
-        Task simple1 = new Task("Simple1", "simple task 1");
-        fileManager.createSimpleTask(simple1);
-        Epic epic1 = new Epic("Epic1", "epic task 1");
-        fileManager.createEpicTask(epic1);
-        SubTask subTask1 = new SubTask("SubTask1", "sub task 1", epic1.getId());
-        fileManager.createSubTask(subTask1);
-        fileManager.getSimpleTaskById(simple1.getId());
-        fileManager.getSubTaskById(subTask1.getId());
-        fileManager.getEpicTaskById(epic1.getId());
-        printHistory(fileManager);
-        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(Paths.get(HOME, "task_data.csv").toFile());
-        printHistory(loadedManager);
-    }
-
-    public static void printHistory(TaskManager manager) {
-        System.out.println("История просмотра задач:");
-        for (Task task : manager.getHistory()) {
-            System.out.println(task);
-        }
-    }
-
     public static FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager loadedManager = new FileBackedTaskManager(file.toPath());
         try {
@@ -154,6 +130,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         for (T task : tasks) {
             writer.write(task.toString() + "\n");
         }
+    }
+
+    @Override
+    public void clearHistory() {
+        super.clearHistory();
+        save();
     }
 
     @Override

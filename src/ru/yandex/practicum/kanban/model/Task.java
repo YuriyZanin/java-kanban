@@ -1,5 +1,7 @@
 package ru.yandex.practicum.kanban.model;
 
+import java.util.Objects;
+
 public class Task {
     private String name;
     private String description;
@@ -54,5 +56,18 @@ public class Task {
     @Override
     public String toString() {
         return String.format("%s,%s,%s,%s,%s,%s", getId(), TaskType.TASK, getName(), getStatus(), getDescription(), "");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Task)) return false;
+        Task task = (Task) o;
+        return name.equals(task.name) && Objects.equals(description, task.description) && id.equals(task.id) && status == task.status;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, description, id, status);
     }
 }

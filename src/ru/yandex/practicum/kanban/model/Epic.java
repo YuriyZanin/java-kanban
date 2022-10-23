@@ -3,6 +3,7 @@ package ru.yandex.practicum.kanban.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class Epic extends Task {
     private final List<Integer> subTaskIds;
@@ -36,5 +37,19 @@ public class Epic extends Task {
     @Override
     public String toString() {
         return String.format("%s,%s,%s,%s,%s,%s", getId(), TaskType.EPIC, getName(), getStatus(), getDescription(), "");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Epic)) return false;
+        if (!super.equals(o)) return false;
+        Epic epic = (Epic) o;
+        return subTaskIds.equals(epic.subTaskIds);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), subTaskIds);
     }
 }
