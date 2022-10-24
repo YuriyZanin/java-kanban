@@ -8,14 +8,25 @@ import ru.yandex.practicum.kanban.utils.Managers;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
+
+    public static final Comparator<Task> TASK_START_TIME_COMPARATOR = (o1, o2) -> {
+        if (o1.getStartTime() == null && o2.getStartTime() == null)
+            return o1.getId().compareTo(o2.getId());
+        if (o1.getStartTime() == null) {
+            return 1;
+        }
+        if (o2.getStartTime() == null) {
+            return -1;
+        }
+        return o1.getStartTime().compareTo(o2.getStartTime());
+    };
     private final HashMap<Integer, Task> simpleTasks;
     private final HashMap<Integer, Epic> epicTasks;
     private final HashMap<Integer, SubTask> subTasks;
+    private final Set<Task> sortedTasks;
     private final HistoryManager historyManager;
     private int currentId;
 
@@ -24,6 +35,7 @@ public class InMemoryTaskManager implements TaskManager {
         this.epicTasks = new HashMap<>();
         this.subTasks = new HashMap<>();
         this.historyManager = Managers.getDefaultHistory();
+        this.sortedTasks = new TreeSet<>(TASK_START_TIME_COMPARATOR);
         this.currentId = 1;
     }
 
@@ -44,6 +56,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void clearSimpleTasks() {
+        simpleTasks.values().forEach(sortedTasks::remove);
         simpleTasks.clear();
     }
 
@@ -55,6 +68,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void clearSubTasks() {
+        subTasks.values().forEach(sortedTasks::remove);
         subTasks.clear();
         for (Epic epicTask : getEpicTasks()) {
             epicTask.clearSubTasks();
@@ -88,16 +102,24 @@ public class InMemoryTaskManager implements TaskManager {
         if (task.getId() == null)
             task.setId(currentId++);
         simpleTasks.put(task.getId(), task);
+        sortedTasks.add(task);
     }
 
     @Override
     public void updateSimpleTask(Task task) {
-        simpleTasks.put(task.getId(), task);
+        Task oldTask = simpleTasks.put(task.getId(), task);
+        if (oldTask != null) {
+            sortedTasks.remove(oldTask);
+        }
+        sortedTasks.add(task);
     }
 
     @Override
     public void deleteSimpleTask(int id) {
-        simpleTasks.remove(id);
+        Task removedTask = simpleTasks.remove(id);
+        if (removedTask != null) {
+            sortedTasks.remove(removedTask);
+        }
         historyManager.remove(id);
     }
 
@@ -130,13 +152,18 @@ public class InMemoryTaskManager implements TaskManager {
             subTask.setId(currentId++);
         parent.addSubTask(subTask);
         subTasks.put(subTask.getId(), subTask);
+        sortedTasks.add(subTask);
         updateEpic(parent);
     }
 
     @Override
     public void updateSubTask(SubTask subTask) {
         Epic parent = epicTasks.get(subTask.getParentId());
-        subTasks.put(subTask.getId(), subTask);
+        SubTask oldTask = subTasks.put(subTask.getId(), subTask);
+        if (oldTask != null) {
+            sortedTasks.remove(oldTask);
+        }
+        sortedTasks.add(subTask);
         updateEpic(parent);
     }
 
@@ -144,6 +171,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteSubTask(int id) {
         SubTask taskToRemove = subTasks.remove(id);
         if (taskToRemove != null) {
+            sortedTasks.remove(taskToRemove);
             Epic epicTask = epicTasks.get(taskToRemove.getParentId());
             epicTask.deleteSubTask(taskToRemove);
             updateEpic(epicTask);
@@ -161,6 +189,11 @@ public class InMemoryTaskManager implements TaskManager {
             }
         }
         return epicSubTasks;
+    }
+
+    @Override
+    public Set<Task> getPrioritizedTasks() {
+        return sortedTasks;
     }
 
     @Override

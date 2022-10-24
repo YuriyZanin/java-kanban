@@ -176,6 +176,14 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
+    void getPrioritizedTasks() {
+        int i = 0;
+        for (Task task : manager.getPrioritizedTasks()) {
+            assertEquals(PRIORITIZED_TASKS.get(i++), task);
+        }
+    }
+
+    @Test
     void checkEpicStatusCalculating() {
         Epic newEpic = new Epic("new Epic", "epic for testing", null, Duration.ofMinutes(10));
         manager.createEpicTask(newEpic);
