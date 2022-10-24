@@ -1,5 +1,6 @@
 package ru.yandex.practicum.kanban.service;
 
+import ru.yandex.practicum.kanban.exeption.ManagerSaveException;
 import ru.yandex.practicum.kanban.model.Epic;
 import ru.yandex.practicum.kanban.model.Status;
 import ru.yandex.practicum.kanban.model.SubTask;
@@ -99,6 +100,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void createSimpleTask(Task task) {
+        validateIntersections(task);
         if (task.getId() == null)
             task.setId(currentId++);
         simpleTasks.put(task.getId(), task);
@@ -111,6 +113,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (oldTask != null) {
             sortedTasks.remove(oldTask);
         }
+        validateIntersections(task);
         sortedTasks.add(task);
     }
 
@@ -147,6 +150,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void createSubTask(SubTask subTask) {
+        validateIntersections(subTask);
         Epic parent = epicTasks.get(subTask.getParentId());
         if (subTask.getId() == null)
             subTask.setId(currentId++);
@@ -163,6 +167,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (oldTask != null) {
             sortedTasks.remove(oldTask);
         }
+        validateIntersections(subTask);
         sortedTasks.add(subTask);
         updateEpic(parent);
     }
@@ -249,6 +254,26 @@ public class InMemoryTaskManager implements TaskManager {
             } else {
                 epicTask.setStatus(Status.NEW);
             }
+        }
+    }
+
+    private void validateIntersections(Task task) {
+        if (getPrioritizedTasks().stream().anyMatch(t -> isWithinRange(task, t))) {
+            throw new ManagerSaveException("Время выполнения пересекается с другой задачей");
+        }
+    }
+
+    private boolean isWithinRange(Task taskToAdd, Task existingTask) {
+        LocalDateTime toAddStartTime = taskToAdd.getStartTime();
+        LocalDateTime toAddEndTime = taskToAdd.getEndTime();
+        LocalDateTime existStartTime = existingTask.getStartTime();
+        LocalDateTime existEndTime = existingTask.getEndTime();
+        if (toAddStartTime != null && toAddEndTime != null && existStartTime != null && existEndTime != null) {
+            return toAddStartTime.isAfter(existStartTime) && toAddStartTime.isBefore(existEndTime)
+                    || toAddEndTime.isAfter(existStartTime) && toAddEndTime.isBefore(existEndTime)
+                    || toAddStartTime.isBefore(existStartTime) && toAddEndTime.isAfter(existEndTime);
+        } else {
+            return false;
         }
     }
 

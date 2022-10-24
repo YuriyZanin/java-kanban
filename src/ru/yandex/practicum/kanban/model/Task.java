@@ -14,21 +14,23 @@ public class Task {
     private Duration duration;
     private LocalDateTime startTime;
 
-    public Task(String name, String description, LocalDateTime startTime, Duration duration) {
+    public Task(String name, String description, LocalDateTime startTime) {
         this.name = name;
         this.description = description;
         this.status = Status.NEW;
         this.startTime = startTime;
+        this.duration = Duration.ZERO;
+    }
+
+    public Task(String name, String description, LocalDateTime startTime, Duration duration) {
+        this(name, description, startTime);
         this.duration = duration;
     }
 
     public Task(Integer id, String name, Status status, String description, LocalDateTime startTime, Duration duration) {
-        this.name = name;
-        this.description = description;
+        this(name, description, startTime, duration);
         this.id = id;
         this.status = status;
-        this.startTime = startTime;
-        this.duration = duration;
     }
 
     public String getName() {
@@ -64,7 +66,9 @@ public class Task {
     }
 
     public LocalDateTime getEndTime() {
-        return startTime.plus(duration);
+        if (startTime != null && duration != null) {
+            return startTime.plus(duration);
+        } else return null;
     }
 
     public Duration getDuration() {

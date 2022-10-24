@@ -1,6 +1,7 @@
 package ru.yandex.practicum.kanban.service;
 
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.kanban.exeption.ManagerSaveException;
 import ru.yandex.practicum.kanban.model.Epic;
 import ru.yandex.practicum.kanban.model.SubTask;
 import ru.yandex.practicum.kanban.model.Task;
@@ -85,11 +86,17 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void createSimpleTask() {
-        Task newTask = new Task("Task", "task from create method", LocalDateTime.now(), Duration.ofMinutes(10));
+        Task newTask = new Task("Task", "task from create method", null, Duration.ofMinutes(10));
         manager.createSimpleTask(newTask);
         assertNotNull(manager.getSimpleTaskById(newTask.getId()));
         assertEquals(manager.getSimpleTaskById(newTask.getId()), newTask);
         assertEquals(SIMPLE_TASKS.size() + 1, manager.getSimpleTasks().size());
+
+        Task intersectedTask = new Task("IntersectedTask", "task with start time intersection", LocalDateTime.now(), Duration.ofMinutes(10));
+        ManagerSaveException ex = assertThrows(ManagerSaveException.class, () ->
+                manager.createSimpleTask(intersectedTask)
+        );
+        assertEquals("Время выполнения пересекается с другой задачей", ex.getMessage());
     }
 
     @Test
@@ -99,6 +106,10 @@ abstract class TaskManagerTest<T extends TaskManager> {
         Task updatedTask = manager.getSimpleTaskById(taskBeforeUpdate.getId());
         assertNotEquals(taskBeforeUpdate, updatedTask);
         assertEquals(SIMPLE_TASKS.size(), manager.getSimpleTasks().size());
+
+        updatedTask.setStartTime(LocalDateTime.now().plusMinutes(20));
+        ManagerSaveException ex = assertThrows(ManagerSaveException.class, () -> manager.updateSimpleTask(updatedTask));
+        assertEquals("Время выполнения пересекается с другой задачей", ex.getMessage());
     }
 
     @Test
@@ -146,6 +157,10 @@ abstract class TaskManagerTest<T extends TaskManager> {
         assertNotNull(manager.getSubTaskById(newSubTask.getId()));
         assertEquals(newSubTask, manager.getSubTaskById(newSubTask.getId()));
         assertEquals(SUB_TASKS.size() + 1, manager.getSubTasks().size());
+
+        SubTask intersectedTask = new SubTask("IntersectedTask", "sub task with start time intersection", LocalDateTime.now().minusMinutes(30), Duration.ofMinutes(90), EPIC_TASK_1_ID);
+        ManagerSaveException ex = assertThrows(ManagerSaveException.class, () -> manager.createSubTask(intersectedTask));
+        assertEquals("Время выполнения пересекается с другой задачей", ex.getMessage());
     }
 
     @Test
@@ -155,6 +170,10 @@ abstract class TaskManagerTest<T extends TaskManager> {
         SubTask updatedTask = manager.getSubTaskById(subTaskBeforeUpdate.getId());
         assertNotEquals(subTaskBeforeUpdate, updatedTask);
         assertEquals(SUB_TASKS.size(), manager.getSubTasks().size());
+
+        updatedTask.setStartTime(LocalDateTime.now());
+        ManagerSaveException ex = assertThrows(ManagerSaveException.class, () -> manager.updateSubTask(updatedTask));
+        assertEquals("Время выполнения пересекается с другой задачей", ex.getMessage());
     }
 
     @Test
