@@ -1,10 +1,7 @@
 package ru.yandex.practicum.kanban.service;
 
 import ru.yandex.practicum.kanban.exeption.ManagerSaveException;
-import ru.yandex.practicum.kanban.model.Epic;
-import ru.yandex.practicum.kanban.model.Status;
-import ru.yandex.practicum.kanban.model.SubTask;
-import ru.yandex.practicum.kanban.model.Task;
+import ru.yandex.practicum.kanban.model.*;
 import ru.yandex.practicum.kanban.utils.Managers;
 
 import java.time.Duration;
@@ -29,15 +26,33 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, SubTask> subTasks;
     private final Set<Task> sortedTasks;
     private final HistoryManager historyManager;
+
+    private final HashMap<TaskInterval, Boolean> intervalsTable;
+
     private int currentId;
 
     public InMemoryTaskManager() {
         this.simpleTasks = new HashMap<>();
         this.epicTasks = new HashMap<>();
         this.subTasks = new HashMap<>();
+        this.intervalsTable = fillIntervalsTable();
         this.historyManager = Managers.getDefaultHistory();
         this.sortedTasks = new TreeSet<>(TASK_START_TIME_COMPARATOR);
         this.currentId = 1;
+    }
+
+    private HashMap<TaskInterval, Boolean> fillIntervalsTable() {
+        HashMap<TaskInterval, Boolean> intervals = new HashMap<>();
+        TaskInterval current = new TaskInterval(LocalDateTime.now());
+        intervals.put(current, false);
+
+        LocalDateTime finishTime = current.getStartTime().plusYears(1);
+        while (!finishTime.equals(current.getStartTime())) {
+            current = current.nextInterval();
+            intervals.put(current, false);
+        }
+
+        return intervals;
     }
 
     @Override
@@ -57,7 +72,10 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void clearSimpleTasks() {
-        simpleTasks.values().forEach(sortedTasks::remove);
+        simpleTasks.values().forEach(task -> {
+            sortedTasks.remove(task);
+            skipIntervalsOfTask(task);
+        });
         simpleTasks.clear();
     }
 
@@ -69,7 +87,10 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void clearSubTasks() {
-        subTasks.values().forEach(sortedTasks::remove);
+        subTasks.values().forEach(subTask -> {
+            sortedTasks.remove(subTask);
+            skipIntervalsOfTask(subTask);
+        });
         subTasks.clear();
         for (Epic epicTask : getEpicTasks()) {
             epicTask.clearSubTasks();
@@ -108,19 +129,22 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateSimpleTask(Task task) {
-        Task oldTask = simpleTasks.put(task.getId(), task);
+    public void updateSimpleTask(Task updatedTask) {
+        Task oldTask = simpleTasks.get(updatedTask.getId());
         if (oldTask != null) {
+            skipIntervalsOfTask(oldTask);
+            validateIntersections(updatedTask);
+            simpleTasks.put(updatedTask.getId(), updatedTask);
             sortedTasks.remove(oldTask);
+            sortedTasks.add(updatedTask);
         }
-        validateIntersections(task);
-        sortedTasks.add(task);
     }
 
     @Override
     public void deleteSimpleTask(int id) {
         Task removedTask = simpleTasks.remove(id);
         if (removedTask != null) {
+            skipIntervalsOfTask(removedTask);
             sortedTasks.remove(removedTask);
         }
         historyManager.remove(id);
@@ -161,21 +185,24 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void updateSubTask(SubTask subTask) {
-        Epic parent = epicTasks.get(subTask.getParentId());
-        SubTask oldTask = subTasks.put(subTask.getId(), subTask);
+    public void updateSubTask(SubTask updatedTask) {
+        Epic parent = epicTasks.get(updatedTask.getParentId());
+        SubTask oldTask = subTasks.get(updatedTask.getId());
         if (oldTask != null) {
+            skipIntervalsOfTask(oldTask);
+            validateIntersections(updatedTask);
+            subTasks.put(updatedTask.getId(), updatedTask);
             sortedTasks.remove(oldTask);
+            sortedTasks.add(updatedTask);
+            updateEpic(parent);
         }
-        validateIntersections(subTask);
-        sortedTasks.add(subTask);
-        updateEpic(parent);
     }
 
     @Override
     public void deleteSubTask(int id) {
         SubTask taskToRemove = subTasks.remove(id);
         if (taskToRemove != null) {
+            skipIntervalsOfTask(taskToRemove);
             sortedTasks.remove(taskToRemove);
             Epic epicTask = epicTasks.get(taskToRemove.getParentId());
             epicTask.deleteSubTask(taskToRemove);
@@ -258,22 +285,20 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void validateIntersections(Task task) {
-        if (getPrioritizedTasks().stream().anyMatch(t -> isWithinRange(task, t))) {
-            throw new ManagerSaveException("Время выполнения пересекается с другой задачей");
+        if (task.getStartTime() != null && task.getEndTime() != null) {
+            List<TaskInterval> intervals = TaskInterval.of(task.getStartTime(), task.getEndTime());
+            if (intervals.stream().anyMatch(intervalsTable::get)) {
+                throw new ManagerSaveException("Время выполнения пересекается с другой задачей");
+            } else {
+                intervals.forEach(taskInterval -> intervalsTable.put(taskInterval, true));
+            }
         }
     }
 
-    private boolean isWithinRange(Task taskToAdd, Task existingTask) {
-        LocalDateTime toAddStartTime = taskToAdd.getStartTime();
-        LocalDateTime toAddEndTime = taskToAdd.getEndTime();
-        LocalDateTime existStartTime = existingTask.getStartTime();
-        LocalDateTime existEndTime = existingTask.getEndTime();
-        if (toAddStartTime != null && toAddEndTime != null && existStartTime != null && existEndTime != null) {
-            return toAddStartTime.isAfter(existStartTime) && toAddStartTime.isBefore(existEndTime)
-                    || toAddEndTime.isAfter(existStartTime) && toAddEndTime.isBefore(existEndTime)
-                    || toAddStartTime.isBefore(existStartTime) && toAddEndTime.isAfter(existEndTime);
-        } else {
-            return false;
+    private void skipIntervalsOfTask(Task task) {
+        if (task.getStartTime() != null && task.getEndTime() != null) {
+            List<TaskInterval> intervals = TaskInterval.of(task.getStartTime(), task.getEndTime());
+            intervals.forEach(interval -> intervalsTable.put(interval, false));
         }
     }
 
