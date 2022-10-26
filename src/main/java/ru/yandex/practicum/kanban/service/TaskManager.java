@@ -5,7 +5,6 @@ import ru.yandex.practicum.kanban.model.SubTask;
 import ru.yandex.practicum.kanban.model.Task;
 
 import java.util.List;
-import java.util.Set;
 
 public interface TaskManager {
     List<Task> getSimpleTasks();
@@ -44,7 +43,7 @@ public interface TaskManager {
 
     void deleteSubTask(int id);
 
-    Set<Task> getPrioritizedTasks();
+    List<Task> getPrioritizedTasks();
 
     List<SubTask> getEpicSubTasks(int epicId);
 

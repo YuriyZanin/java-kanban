@@ -1,6 +1,6 @@
 package ru.yandex.practicum.kanban.model;
 
-import ru.yandex.practicum.kanban.utils.Managers;
+import ru.yandex.practicum.kanban.utils.DateTimeUtil;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -57,21 +57,25 @@ public class Epic extends Task {
                 getName(),
                 getStatus(),
                 getDescription(),
-                getStartTime() == null ? " " : Managers.dateTimeFormatter.format(getStartTime()),
+                getStartTime() == null ? " " : DateTimeUtil.DATE_TIME_FORMATTER.format(getStartTime()),
                 getDuration() == null ? " " : getDuration().toMinutes(),
                 "");
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Epic)) return false;
-        if (!super.equals(o)) return false;
+        if (this == o){
+            return true;
+        }
+        if (!(o instanceof Epic)){
+            return false;
+        }
+        if (!super.equals(o)){
+            return false;
+        }
         Epic epic = (Epic) o;
-        String endTime = getEndTime() == null ? "" : Managers.dateTimeFormatter.format(getEndTime());
-        String taskEndTime = epic.getEndTime() == null ? "" : Managers.dateTimeFormatter.format(epic.getEndTime());
         return Objects.equals(subTaskIds, epic.subTaskIds)
-                && endTime.equals(taskEndTime);
+                && Objects.equals(getEndTime(), epic.endTime);
     }
 
     @Override

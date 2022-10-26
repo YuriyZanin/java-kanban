@@ -1,6 +1,6 @@
 package ru.yandex.practicum.kanban.model;
 
-import ru.yandex.practicum.kanban.utils.Managers;
+import ru.yandex.practicum.kanban.utils.DateTimeUtil;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -95,21 +95,23 @@ public class Task {
                 getName(),
                 getStatus(),
                 getDescription(),
-                getStartTime() == null ? " " : Managers.dateTimeFormatter.format(getStartTime()),
+                getStartTime() == null ? " " : DateTimeUtil.DATE_TIME_FORMATTER.format(getStartTime()),
                 getDuration() == null ? " " : getDuration().toMinutes(),
                 "");
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Task)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Task)) {
+            return false;
+        }
         Task task = (Task) o;
-        String startTime = getStartTime() == null ? "" : Managers.dateTimeFormatter.format(getStartTime());
-        String taskStartTime = task.getStartTime() == null ? "" : Managers.dateTimeFormatter.format(task.getStartTime());
         return name.equals(task.name) && Objects.equals(description, task.description) && id.equals(task.id)
                 && status == task.status && Objects.equals(duration, task.duration)
-                && startTime.equals(taskStartTime);
+                && Objects.equals(getStartTime(), task.getStartTime());
     }
 
     @Override

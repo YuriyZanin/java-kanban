@@ -3,7 +3,7 @@ package ru.yandex.practicum.kanban.service;
 import ru.yandex.practicum.kanban.exeption.ManagerLoadException;
 import ru.yandex.practicum.kanban.exeption.ManagerSaveException;
 import ru.yandex.practicum.kanban.model.*;
-import ru.yandex.practicum.kanban.utils.Managers;
+import ru.yandex.practicum.kanban.utils.DateTimeUtil;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -96,7 +96,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String name = data[2];
         Status status = Status.valueOf(data[3]);
         String description = data[4];
-        LocalDateTime startTime = data[5].isBlank() ? null : LocalDateTime.parse(data[5], Managers.dateTimeFormatter);
+        LocalDateTime startTime = data[5].isBlank() ? null : LocalDateTime.parse(data[5], DateTimeUtil.DATE_TIME_FORMATTER);
         Duration duration = data[6].isBlank() ? null : Duration.ofMinutes(Long.parseLong(data[6]));
 
         switch (type) {

@@ -25,7 +25,7 @@ class HistoryManagerTest {
 
         manager.add(SIMPLE_TASK_1);
         manager.add(SIMPLE_TASK_2);
-        assertEquals(SIMPLE_TASKS, manager.getHistory());
+        assertEquals(List.of(SIMPLE_TASK_1, SIMPLE_TASK_2), manager.getHistory());
 
         manager.add(SIMPLE_TASK_1);
         assertEquals(List.of(SIMPLE_TASK_2, SIMPLE_TASK_1), manager.getHistory());

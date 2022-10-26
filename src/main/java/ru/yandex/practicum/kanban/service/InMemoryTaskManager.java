@@ -224,8 +224,8 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Set<Task> getPrioritizedTasks() {
-        return sortedTasks;
+    public List<Task> getPrioritizedTasks() {
+        return new ArrayList<>(sortedTasks);
     }
 
     @Override

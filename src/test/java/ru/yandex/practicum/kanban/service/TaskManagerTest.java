@@ -5,7 +5,7 @@ import ru.yandex.practicum.kanban.exeption.ManagerSaveException;
 import ru.yandex.practicum.kanban.model.Epic;
 import ru.yandex.practicum.kanban.model.SubTask;
 import ru.yandex.practicum.kanban.model.Task;
-import ru.yandex.practicum.kanban.model.TaskInterval;
+import ru.yandex.practicum.kanban.utils.DateTimeUtil;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -18,7 +18,7 @@ import static ru.yandex.practicum.kanban.utils.TestData.*;
 
 abstract class TaskManagerTest<T extends TaskManager> {
 
-    public T manager;
+    protected T manager;
 
     @Test
     void getSimpleTasks() {
@@ -48,12 +48,15 @@ abstract class TaskManagerTest<T extends TaskManager> {
     void clearEpicTasks() {
         manager.clearEpicTasks();
         assertTrue(manager.getEpicTasks().isEmpty());
+        assertTrue(manager.getSubTasks().isEmpty());
     }
 
     @Test
     void clearSubTasks() {
         manager.clearSubTasks();
         assertTrue(manager.getSubTasks().isEmpty());
+        assertTrue(manager.getEpicTasks().stream().allMatch(epic -> epic.getSubTaskIds().isEmpty()));
+        assertTrue(manager.getEpicTasks().stream().allMatch(epic -> manager.getEpicSubTasks(epic.getId()).isEmpty()));
     }
 
     @Test
@@ -91,27 +94,25 @@ abstract class TaskManagerTest<T extends TaskManager> {
         Task newTask = new Task("Task", "task from create method", null, Duration.ofMinutes(10));
         manager.createSimpleTask(newTask);
         assertNotNull(manager.getSimpleTaskById(newTask.getId()));
-        assertEquals(manager.getSimpleTaskById(newTask.getId()), newTask);
         assertEquals(SIMPLE_TASKS.size() + 1, manager.getSimpleTasks().size());
 
-        Task intersectedTask = new Task("IntersectedTask", "task with start time intersection", LocalDateTime.of(NEXT_DAY, LocalTime.of(12, 14)), Duration.ofMinutes(10));
-        ManagerSaveException ex = assertThrows(ManagerSaveException.class, () ->
-                manager.createSimpleTask(intersectedTask)
-        );
-        assertEquals("Время выполнения пересекается с другой задачей", ex.getMessage());
+        Task intersectedTask = new Task("IntersectedTask", "task with start time intersection",
+                LocalDateTime.of(NEXT_DAY, LocalTime.of(12, 14)), Duration.ofMinutes(10));
+        assertThrows(ManagerSaveException.class, () -> manager.createSimpleTask(intersectedTask));
     }
 
     @Test
     void updateSimpleTask() {
         Task taskBeforeUpdate = manager.getSimpleTaskById(SIMPLE_TASK_1_ID);
-        manager.updateSimpleTask(new Task(taskBeforeUpdate.getId(), "updated Name", taskBeforeUpdate.getStatus(), "updated desc", taskBeforeUpdate.getStartTime(), taskBeforeUpdate.getDuration()));
+        manager.updateSimpleTask(new Task(taskBeforeUpdate.getId(), "updated Name", taskBeforeUpdate.getStatus(),
+                "updated desc", taskBeforeUpdate.getStartTime(), taskBeforeUpdate.getDuration()));
         Task updatedTask = manager.getSimpleTaskById(taskBeforeUpdate.getId());
         assertNotEquals(taskBeforeUpdate, updatedTask);
         assertEquals(SIMPLE_TASKS.size(), manager.getSimpleTasks().size());
 
-        ManagerSaveException ex = assertThrows(ManagerSaveException.class,
-                () -> manager.updateSimpleTask(new Task(updatedTask.getId(), "task", NEW, "desc", SUB_TASK_1.getStartTime().plusMinutes(3), Duration.ZERO)));
-        assertEquals("Время выполнения пересекается с другой задачей", ex.getMessage());
+        assertThrows(ManagerSaveException.class, () ->
+                manager.updateSimpleTask(new Task(updatedTask.getId(), "task", NEW, "desc",
+                        SUB_TASK_1.getStartTime().plusMinutes(3), Duration.ZERO)));
     }
 
     @Test
@@ -126,7 +127,8 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void createEpicTask() {
-        Epic newEpic = new Epic("Epic", "epic from create method", LocalDateTime.now(), Duration.ofMinutes(10));
+        Epic newEpic = new Epic("Epic", "epic from create method",
+                LocalDateTime.now(), Duration.ofMinutes(10));
         manager.createEpicTask(newEpic);
         assertNotNull(manager.getEpicTaskById(newEpic.getId()));
         assertEquals(newEpic, manager.getEpicTaskById(newEpic.getId()));
@@ -136,7 +138,8 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void updateEpicTask() {
         Epic epicBeforeUpdate = manager.getEpicTaskById(EPIC_TASK_2_ID);
-        manager.updateEpicTask(new Epic(epicBeforeUpdate.getId(), "Epic", NEW, "updated epic task", epicBeforeUpdate.getStartTime(), epicBeforeUpdate.getDuration()));
+        manager.updateEpicTask(new Epic(epicBeforeUpdate.getId(), "Epic", NEW, "updated epic task",
+                epicBeforeUpdate.getStartTime(), epicBeforeUpdate.getDuration()));
         Epic updatedEpic = manager.getEpicTaskById(epicBeforeUpdate.getId());
         assertNotEquals(epicBeforeUpdate, updatedEpic);
         assertEquals(EPIC_TASKS.size(), manager.getEpicTasks().size());
@@ -146,6 +149,11 @@ abstract class TaskManagerTest<T extends TaskManager> {
     void deleteEpicTask() {
         manager.deleteEpicTask(EPIC_TASK_1_ID);
         assertNull(manager.getEpicTaskById(EPIC_TASK_1_ID));
+        assertTrue(manager.getEpicSubTasks(EPIC_TASK_1_ID).isEmpty());
+        assertNull(manager.getSubTaskById(SUB_TASK_1_ID));
+        assertNull(manager.getSubTaskById(SUB_TASK_2_ID));
+        assertNull(manager.getSubTaskById(SUB_TASK_3_ID));
+        assertNull(manager.getSubTaskById(SUB_TASK_4_ID));
         assertEquals(EPIC_TASKS.size() - 1, manager.getEpicTasks().size());
 
         manager.deleteEpicTask(NOT_EXIST_ID);
@@ -154,34 +162,37 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void createSubTask() {
-        SubTask newSubTask = new SubTask("Sub task", "sub task from create method", null, Duration.ofMinutes(10), EPIC_TASK_1_ID);
+        SubTask newSubTask = new SubTask("Sub task", "sub task from create method", null,
+                Duration.ofMinutes(10), EPIC_TASK_1_ID);
         manager.createSubTask(newSubTask);
         assertNotNull(manager.getSubTaskById(newSubTask.getId()));
         assertEquals(newSubTask, manager.getSubTaskById(newSubTask.getId()));
         assertEquals(SUB_TASKS.size() + 1, manager.getSubTasks().size());
 
-        SubTask intersectedTask = new SubTask("IntersectedTask", "sub task with start time intersection", LocalDateTime.of(NEXT_DAY, LocalTime.of(12, 0)), Duration.ofMinutes(90), EPIC_TASK_1_ID);
-        ManagerSaveException ex = assertThrows(ManagerSaveException.class, () -> manager.createSubTask(intersectedTask));
-        assertEquals("Время выполнения пересекается с другой задачей", ex.getMessage());
+        SubTask intersectedTask = new SubTask("IntersectedTask", "sub task with start time intersection",
+                LocalDateTime.of(NEXT_DAY, LocalTime.of(12, 0)), Duration.ofMinutes(90), EPIC_TASK_1_ID);
+        assertThrows(ManagerSaveException.class, () -> manager.createSubTask(intersectedTask));
     }
 
     @Test
     void updateSubTask() {
         SubTask subTaskBeforeUpdate = manager.getSubTaskById(SUB_TASK_1_ID);
-        manager.updateSubTask(new SubTask(subTaskBeforeUpdate.getId(), "sub", NEW, "updated sub task", subTaskBeforeUpdate.getStartTime(), subTaskBeforeUpdate.getDuration(), EPIC_TASK_1_ID));
+        manager.updateSubTask(new SubTask(subTaskBeforeUpdate.getId(), "sub", NEW, "updated sub task",
+                subTaskBeforeUpdate.getStartTime(), subTaskBeforeUpdate.getDuration(), EPIC_TASK_1_ID));
         SubTask updatedTask = manager.getSubTaskById(subTaskBeforeUpdate.getId());
         assertNotEquals(subTaskBeforeUpdate, updatedTask);
         assertEquals(SUB_TASKS.size(), manager.getSubTasks().size());
 
-        ManagerSaveException ex = assertThrows(ManagerSaveException.class,
-                () -> manager.updateSubTask(new SubTask(updatedTask.getId(), "sub", NEW, "updated", SIMPLE_TASK_1.getStartTime(), TaskInterval.DEFAULT_DURATION, EPIC_TASK_1_ID)));
-        assertEquals("Время выполнения пересекается с другой задачей", ex.getMessage());
+        assertThrows(ManagerSaveException.class, () ->
+                manager.updateSubTask(new SubTask(updatedTask.getId(), "sub", NEW, "updated",
+                        SIMPLE_TASK_1.getStartTime(), DateTimeUtil.DEFAULT_DURATION_OF_A_TASK, EPIC_TASK_1_ID)));
     }
 
     @Test
     void deleteSubTask() {
         manager.deleteSubTask(SUB_TASK_1_ID);
         assertNull(manager.getSubTaskById(SUB_TASK_1_ID));
+        assertEquals(List.of(SUB_TASK_2, SUB_TASK_3, SUB_TASK_4) ,manager.getEpicSubTasks(EPIC_TASK_1_ID));
         assertEquals(SUB_TASKS.size() - 1, manager.getSubTasks().size());
 
         manager.deleteSubTask(NOT_EXIST_ID);
@@ -220,17 +231,28 @@ abstract class TaskManagerTest<T extends TaskManager> {
         manager.updateSubTask(subTasks.get(0));
         assertEquals(newEpic.getStatus(), IN_PROGRESS);
 
-        subTasks.forEach(subTask -> {
-            subTask.setStatus(DONE);
-            manager.updateSubTask(subTask);
-        });
-        assertEquals(newEpic.getStatus(), DONE);
+        subTasks.get(0).setStatus(IN_PROGRESS);
+        manager.updateSubTask(subTasks.get(0));
+        assertEquals(newEpic.getStatus(), IN_PROGRESS);
 
         subTasks.forEach(subTask -> {
             subTask.setStatus((IN_PROGRESS));
             manager.updateSubTask(subTask);
         });
         assertEquals(newEpic.getStatus(), IN_PROGRESS);
+
+        subTasks.forEach(subTask -> {
+            subTask.setStatus(DONE);
+            manager.updateSubTask(subTask);
+        });
+        assertEquals(newEpic.getStatus(), DONE);
+
+        subTasks.get(0).setStatus(IN_PROGRESS);
+        manager.updateSubTask(subTasks.get(0));
+        assertEquals(newEpic.getStatus(), IN_PROGRESS);
+
+        manager.deleteSubTask(subTasks.get(0).getId());
+        assertEquals(newEpic.getStatus(), DONE);
 
         manager.clearSubTasks();
         assertEquals(newEpic.getStatus(), NEW);

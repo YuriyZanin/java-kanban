@@ -29,6 +29,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         assertEquals(manager.getSimpleTasks(), loadedManager.getSimpleTasks());
         assertEquals(manager.getEpicTasks(), loadedManager.getEpicTasks());
         assertEquals(manager.getSubTasks(), loadedManager.getSubTasks());
+        assertEquals(manager.getPrioritizedTasks(), loadedManager.getPrioritizedTasks());
         assertEquals(manager.getHistory(), loadedManager.getHistory());
 
         manager.clearHistory();
@@ -47,9 +48,8 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         assertTrue(loadedManager.getEpicTasks().isEmpty());
         assertTrue(loadedManager.getSubTasks().isEmpty());
 
-        ManagerLoadException ex = assertThrows(ManagerLoadException.class, () ->
+        assertThrows(ManagerLoadException.class, () ->
                 FileBackedTaskManager.loadFromFile(Paths.get(HOME, "not_exist_file.csv").toFile())
         );
-        assertEquals(ex.getMessage(), "Ошибка при загрузке файла");
     }
 }

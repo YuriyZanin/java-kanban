@@ -1,22 +1,22 @@
 package ru.yandex.practicum.kanban.model;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static ru.yandex.practicum.kanban.utils.DateTimeUtil.*;
+
 public class TaskInterval {
 
-    public static final Duration DEFAULT_DURATION = Duration.ofMinutes(15);
     private final LocalDateTime startTime;
     private final LocalDateTime endTime;
 
     public TaskInterval(LocalDateTime startTime) {
         this.startTime = LocalDateTime.of(startTime.getYear(), startTime.getMonth(), startTime.getDayOfMonth(),
                 startTime.getHour(), roundMinutes(startTime.getMinute()));
-        this.endTime = this.startTime.plus(DEFAULT_DURATION);
+        this.endTime = this.startTime.plus(DEFAULT_DURATION_OF_A_TASK);
     }
 
     public static List<TaskInterval> of(LocalDateTime startTime, LocalDateTime endTime) {
@@ -61,7 +61,7 @@ public class TaskInterval {
     }
 
     private int roundMinutes(int minutes) {
-        int duration = (int) DEFAULT_DURATION.toMinutes();
+        int duration = (int) DEFAULT_DURATION_OF_A_TASK.toMinutes();
         if (minutes % duration == 0) {
             return minutes;
         } else {
