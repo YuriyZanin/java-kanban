@@ -12,7 +12,7 @@ import java.util.Objects;
 public class Epic extends Task {
     private final List<Integer> subTaskIds;
 
-    private LocalDateTime endTime;
+    private transient LocalDateTime endTime;
 
     public Epic(String name, String description, LocalDateTime startTime, Duration duration) {
         super(name, description, startTime, duration);
@@ -74,8 +74,7 @@ public class Epic extends Task {
             return false;
         }
         Epic epic = (Epic) o;
-        return Objects.equals(subTaskIds, epic.subTaskIds)
-                && Objects.equals(getEndTime(), epic.endTime);
+        return Objects.equals(subTaskIds, epic.subTaskIds);
     }
 
     @Override
