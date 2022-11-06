@@ -65,6 +65,6 @@ public class TestData {
         manager.getSimpleTaskById(SIMPLE_TASK_1_ID);
         manager.getSimpleTaskById(SIMPLE_TASK_2_ID);
         manager.getEpicTaskById(EPIC_TASK_1_ID);
-        manager.getSubTaskById(SIMPLE_TASK_2_ID);
+        manager.getSubTaskById(SUB_TASK_2_ID);
     }
 }
