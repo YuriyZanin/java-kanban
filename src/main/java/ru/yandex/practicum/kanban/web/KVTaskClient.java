@@ -24,33 +24,37 @@ public class KVTaskClient {
             HttpRequest request = HttpRequest.newBuilder().uri(createUri).POST(body).build();
             client.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
     public String load(String key) {
         URI loadUri = URI.create(serverUrl + "/load/" + key + "?API_TOKEN=" + token);
         HttpRequest request = HttpRequest.newBuilder().uri(loadUri).GET().build();
-        HttpResponse<String> response = null;
+        HttpResponse<String> response;
         try {
             response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response == null) {
+                throw new RuntimeException("Ответ на запрос не получен");
+            }
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        assert response != null;
         return response.body();
     }
 
     private String register() {
         URI registerUri = URI.create(serverUrl + "/register");
         HttpRequest register = HttpRequest.newBuilder().uri(registerUri).GET().build();
-        HttpResponse<String> response = null;
+        HttpResponse<String> response;
         try {
             response = client.send(register, HttpResponse.BodyHandlers.ofString());
+            if (response == null) {
+                throw new RuntimeException("Ответ на запрос не получен");
+            }
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        assert response != null;
         return response.body();
     }
 }
