@@ -105,11 +105,11 @@ public class HttpTaskServer {
                         respCode = 400;
                     }
                     exchange.sendResponseHeaders(respCode, 0);
-                    exchange.close();
                 } catch (RuntimeException e) {
                     String message = e.getMessage() == null ? "Ошика при выполнении запроса" : e.getMessage();
-                    exchange.sendResponseHeaders(400, message.getBytes().length);
+                    exchange.sendResponseHeaders(500, message.getBytes().length);
                     exchange.getResponseBody().write(message.getBytes());
+                } finally {
                     exchange.close();
                 }
                 break;
