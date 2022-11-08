@@ -23,35 +23,27 @@ import static ru.yandex.practicum.kanban.utils.TestData.*;
 
 
 public class HttpTaskServerTest {
-    static HttpTaskServer server;
+    HttpTaskServer server;
     static HttpClient client;
 
     static Gson gson;
 
     @BeforeAll
-    static void beforeAll() throws IOException {
-        server = new HttpTaskServer();
-        server.startServer();
+    static void beforeAll() {
         client = HttpClient.newHttpClient();
         gson = getGsonInstance();
     }
 
-    @AfterAll
-    static void afterAll() {
-        server.stopServer();
-    }
-
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
+        server = new HttpTaskServer();
+        server.startServer();
         setUpTestData((InMemoryTaskManager) server.getManager());
     }
 
     @AfterEach
     void tearDown() {
-        server.getManager().clearSimpleTasks();
-        server.getManager().clearEpicTasks();
-        server.getManager().clearSubTasks();
-        ((InMemoryTaskManager) (server.getManager())).clearHistory();
+        server.stopServer();
     }
 
     @Test
